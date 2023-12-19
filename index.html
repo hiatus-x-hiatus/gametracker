@@ -1,0 +1,3553 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game Tracker</title>
+  <style>
+    body {
+      background: url('https://i.imgur.com/j629inp.png') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 500px;
+      text-align: center;
+    }
+    button {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .hidden-section {
+      display: none;
+      margin-top: 10px;
+    }
+    .cover-dimensions {
+      max-width: 300px;
+      max-height: 300px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    .percentage-bar {
+        position: relative;
+        width: 100%;
+        height: 20px;
+        background-color: rgba(204, 204, 204, 0.5);
+        border: 1px solid #333;
+        margin-top: 5px;
+    }
+    .percentage-fill {
+        height: 100%;
+        background-color: #B6ADF3;
+    }
+    .percentage-text {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        line-height: 20px;
+        color: black;
+    }
+    table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    }
+    table, th, td {
+        border: 1px solid #aaa;
+    }
+    th, td {
+        padding: 8px;
+    }
+    #pagination {
+        margin-top: 10px;
+        text-align: center;
+        display: flex;
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+    }
+    #backlogResult {
+        margin-top: 10px;
+        text-align: center;
+        display: flex;
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+    }
+    #page {
+    margin: 0 10px; /* Add margin to page text for spacing */
+    }
+    #additional-games {
+        display: none;
+    }
+    button {
+        padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+  <h1>CB's Game Tracker</h1>
+  
+  <p>VG Price Chart:
+    <a href="https://www.pricecharting.com/offers?seller=zcfznchp4lcc26kwziavsqv22u&status=collection"><img src="https://i.imgur.com/AcDfmVn.gif"></a>
+    Discogs:
+    <a href="https://www.discogs.com/user/CapsuleComputer"><img src="https://i.imgur.com/MnL7t2W.gif"></a>
+    Kitsu:
+    <a href="https://kitsu.io/users/282495"><img src="https://i.imgur.com/YXf589T.gif"></a>
+    SteamDB:
+    <a href="https://steamdb.info/calculator/76561198002586515/?cc=ca"><img src="https://i.imgur.com/w3NjW9p.gif"></a></p>
+
+  <h2>Currently Playing</h2>
+  <table id="currently-playing">
+      <thead>
+          <tr>
+              <th>Cover</th>
+              <th>Title [System]</th>
+          </tr>
+      </thead>
+      <tbody>
+      </tbody>
+  </table>
+
+  <div id="game-summary"></div>
+
+  <h2>Games Beaten</h2>
+  <table id="beaten-games">
+      <thead>
+          <tr>
+              <th>Cover</th>
+              <th>Title [System]</th>
+              <th>Date Beat</th>
+          </tr>
+      </thead>
+      <tbody>
+      </tbody>
+  </table>
+      <div id="pagination">
+        <button id="prev">Previous</button>
+        <span id="page"></span>
+        <button id="next">Next</button>
+    </div>
+
+  <h2>Backlog</h2>
+  <div id="backlogResult"></div>
+  <button id="backlogButon">Suggest a Backlog Title</button>
+  <table id="additional-games">
+      <thead>
+          <tr>
+              <th>Cover</th>
+              <th>Title [System]</th>
+          </tr>
+      </thead>
+      <tbody>
+      </tbody>
+  </table>
+  </div>
+
+  <script>
+  
+  const games = [
+    // currently playing game(s)
+    {
+        title: 'Super Mario RPG',
+        system: 'NSW',
+        beatstatus: 'Currently Playing',
+        datebeat: 'In Progress',
+        cover: 'https://s.pacn.ws/1/p/166/super-mario-rpg-multilanguage-759001.9.jpg?v=rwn5wp&width=400&crop=924,1498'
+    }, 
+    {
+        title: 'Dragon Marked for Death',
+        system: 'NSW',
+        beatstatus: 'Currently Playing',
+        datebeat: 'In Progress',
+        cover: 'https://m.media-amazon.com/images/I/81YIGZ1e69L._AC_SL1500_.jpg'
+    },
+    {
+        title: 'Dragons Crown Pro',
+        system: 'PS4',
+        beatstatus: 'Currently Playing',
+        datebeat: 'In Progress',
+        cover: 'https://m.media-amazon.com/images/I/71tgnpNqkRL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    // games
+    {
+        title: 'Odin Sphere Leifthrasir',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: '2023-11',
+        cover: 'https://m.media-amazon.com/images/I/912RxcMdr+L._AC_SL1500_.jpg'
+    },
+    {
+        title: 'The Legend of Nayuta: Boundless Trails',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-11',
+        cover: 'https://m.media-amazon.com/images/I/81HfsF67r9L._AC_SL1500_.jpg'
+    },
+    {
+        title: 'Ghost Trick: Phantom Detective',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-10',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/51E82dbeU3L._AC_.jpg'
+    },
+    {
+        title: 'The Dark Pictures Anthology: House of Ashes',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: '2023-10',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/71RYsaz8j1L._AC_SL1346_.jpg'
+    },
+    {
+        title: 'CHAOS;HEAD NOAH',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-10',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/611tZDZrKfL._AC_.jpg'
+    },
+    {
+        title: 'Digimon Survive',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-10',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/812JDDZ4wkL._AC_SL1500_.jpg'
+    },
+    {
+        title: 'Blasphemous 2',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-09',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/71oft-LyedL._AC_SL1500_.jpg'
+    },
+    {
+        title: 'Final Fantasy Pixel Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-08',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/51fl1xl8t8L._AC_SL1124_.jpg'
+    },
+    {
+        title: 'Final Fantasy 2 Pixel Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-08',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/51fl1xl8t8L._AC_SL1124_.jpg'
+    },
+    {
+        title: 'Final Fantasy 3 Pixel Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-08',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/51fl1xl8t8L._AC_SL1124_.jpg'
+    },
+    {
+        title: 'Final Fantasy 4 Pixel Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-09',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/51fl1xl8t8L._AC_SL1124_.jpg'
+    },
+    {
+        title: 'Final Fantasy 5 Pixel Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-09',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/51fl1xl8t8L._AC_SL1124_.jpg'
+    },
+    {
+        title: 'Final Fantasy 6 Pixel Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-09',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/51fl1xl8t8L._AC_SL1124_.jpg'
+    },
+    {
+        title: 'Sonic Origins Plus',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-07',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/81NUog-gECL._AC_SL1500_.jpg'
+    },
+    {
+        title: 'The Legend of Zelda: Tears of the Kingdom',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-06',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/91IR9O992-L._AC_SL1500_.jpg'
+    },
+    {
+        title: 'Advance Wars 1+2: Re-Boot Camp',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/81RHwsEZxWL._AC_SL1500_.jpg'
+    },
+    {
+        title: 'Grim Guardians: Demon Purge',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023',
+        cover: 'https://s.pacn.ws/1/p/158/grim-guardians-demon-purge-742139.7.jpg?v=rn89u9&width=&crop=788,1278'
+    },
+    {
+        title: 'Azure Striker GUNVOLT 3',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023',
+        cover: 'https://i0.wp.com/limitedgamenews.com/wp-content/uploads/2022/05/azure-striker-gunvolt-3-standard-edition-physical-retail-release-inti-creates-nintendo-switch-cover-www.limitedgamenews.com_.jpg?ssl=1'
+    },
+    {
+        title: 'Astral Chain',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/910eMi3mDKL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Azure Striker GUNVOLT: Striker Pack',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/718cZqITlFL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Bayonetta 3',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81DFozW3xEL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Bloodstained: Ritual of the Night',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/8177w5u8ZsL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Catherine Fullbody',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81-VSFXK4DL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Doki Doki Literature Club Plus!',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/716ys9lymzL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Dragon Quest 11 S: Echoes of an Elusive Age Definitive Edition',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/91CSVJx8fgL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Final Fantasy X & X-2 HD Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/717UZAbI+5L._AC_SY445_SX342_.jpg'
+    },
+    {
+        title: 'Fire Emblem Warriors: Three Hopes',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81qBjDC-K1L.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Fire Emblem: Three Houses',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/817KFp1wiOL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Fire Emblem: Engage',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023',
+        cover: 'https://m.media-amazon.com/images/I/91p8nM0mSCL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Hades',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81yeI3PjF5L.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Katamari Damacy Reroll',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/8194T6OatxL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Kill La Kill If',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71nwwjISoSL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Kirby and the Forgotten Land',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/915PR-X7KEL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Live A Live',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81fUufF8JjL._AC_SY500_.jpg'
+    },
+    {
+        title: 'Luigis Mansion 3',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81bGvhtiuHL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Mega Man Zero/ZX Legacy Collection',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71RnFO2TsIL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Metroid Dread',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81sm13cLkSS.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Metroid Prime Remastered',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023',
+        cover: 'https://m.media-amazon.com/images/I/81ZCbcOTP5L._AC_SY500_.jpg'
+    },
+    {
+        title: 'No More Heroes 3',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/91cJllN9Y4S._AC_SY500_.jpg'
+    },
+    {
+        title: 'Pocky & Rocky: Reshrined',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/61bKBrl15pL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Pokemon Brilliant Diamond',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71+QUJKcGcL._AC_SY445_SX342_.jpg'
+    },
+    {
+        title: 'Pokemon Legends: Arceus',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81QyRj-+44L._AC_SY445_SX342_.jpg'
+    },
+    {
+        title: 'Pokemon Sword',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81BaU3N0qIL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Pokemon Violet',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81WBOgAfw3L.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Shin Megami Tensei 3 Nocturne HD Remaster',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71X694mEq2S.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Shin Megami Tensei V',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/716r5xFfBJL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Sonic Forces',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81k5hdMzKjL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Super Mario 3D All Stars',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71whlPxCIJL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Super Mario 3D World + Bowser’s Fury',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/91yGAC7ProL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Super Mario Maker 2',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71WHPxzenhL._AC_SY500_.jpg'
+    },
+    {
+        title: 'Super Mario Odyssey',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/91EzThTHhaL._AC_SY741_.jpg'
+    },
+    {
+        title: 'Super Monkey Ball Banana Mania',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71cQLgEd-8L._AC_SY741_.jpg'
+    },
+    {
+        title: 'Super Smash Bros. Ultimate',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81G1qFsRHDL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Tactics Ogre Reborn',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81zC7pDv3UL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'The Binding of Isaac: Afterbirth+',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://images.nintendolife.com/ba749651795c3/binding-of-isaac-afterbirthplus-cover.cover_300x.jpg'
+    },
+    {
+        title: 'The Legend of Zelda: Breath of the Wild',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81KLVpfTWIL._AC_SY741_.jpg'
+    },
+    {
+        title: 'The Legend of Zelda: Link’s Awakening',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/91z5JYtUZAS.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'The Legend of Zelda: Skyward Sword HD',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/91ZwtweqAaL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'The Ninja Saviors: Return of the Warriors',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71fIzhMfpOL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Trials of Mana',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81mKTk1dhUL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Triangle Strategy',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/91sWZbA6W4L.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Mega Man X Legacy Collection 1',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81+YxGv4a4L._AC_SX342_SY445_.jpg'
+    },
+    {
+        title: 'Mega Man X Legacy Collection 2',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81+YxGv4a4L._AC_SX342_SY445_.jpg'
+    },
+    {
+        title: 'Gunvolt Chronicles: Luminous Avenger iX',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://static.wikia.nocookie.net/azurestrikergunvolt/images/2/2c/Cover_Art_-_Luminous_Avenger_iX.png/revision/latest?cb=20190820141451'
+    },
+    {
+        title: 'Gunvolt Chronicles: Luminous Avenger iX 2',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023',
+        cover: 'https://s.pacn.ws/1/p/12j/gunvolt-chronicles-luminous-avenger-ix-2-english-693977.11.jpg?v=rcizlx&width=&crop=643,1047'
+    },
+    {
+        title: 'Animal Crossing: New Horizons',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81UfEdvf2kL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Blaster Master Zero',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress',
+        cover: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.ebay.ca%2Fitm%2F174810051562&psig=AOvVaw0ksHsgLudE7kcAKChxhL8S&ust=1700924075145000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCODeko3y3IIDFQAAAAAdAAAAABAD'
+    },
+    {
+        title: 'Blaster Master Zero 2',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress',
+        cover: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.ebay.ca%2Fitm%2F174810051562&psig=AOvVaw0ksHsgLudE7kcAKChxhL8S&ust=1700924075145000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCODeko3y3IIDFQAAAAAdAAAAABAD'
+    },
+    {
+        title: 'Blaster Master Zero 3',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress',
+        cover: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.ebay.ca%2Fitm%2F174810051562&psig=AOvVaw0ksHsgLudE7kcAKChxhL8S&ust=1700924075145000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCODeko3y3IIDFQAAAAAdAAAAABAD'
+    },
+    {
+        title: 'Cave Story+',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress',
+        cover: 'https://images.nintendolife.com/0f8fb7180cda8/cave-storyplus-cover.cover_large.jpg'
+    },
+    {
+        title: 'CHAOS;CHILD',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress',
+        cover: 'https://m.media-amazon.com/images/W/AVIF_800250-T1/images/I/611tZDZrKfL._AC_.jpg'
+    },
+    {
+        title: 'Collection of Mana',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress',
+        cover: 'https://m.media-amazon.com/images/I/912FOR17tTL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    {
+        title: 'Crash Bandicoot N. Sane Trilogy',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress',
+        cover: 'https://m.media-amazon.com/images/I/71o2YzoiQyL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    },
+    // COVERS FROM HERE
+    {
+        title: 'Danganrompa Decadence',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Digimon Story: Cybersleuth Complete',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Disgaea 1 Complete',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Disgaea 5 Complete',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Dragon Ball FighterZ',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Dragon Ball Xenoverse 2',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Dragon Quest Builders 2',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Eastward',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Final Fantasy XII The Zodiac Age',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Fire Emblem Warriors',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Fire Emblem: 30th Anniversary',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Grandia HD Collection',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'The Legend of Heroes: Trails to Azure',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Mario + Rabbids Kingdom Battle',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Mega Man 11',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Mega Man Legacy Collection 1',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Mega Man Legacy Collection 2',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Mega Man Battle Network Legacy Collection 1',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Mega Man Battle Network Legacy Collection 2',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Puyo Puyo Tetris',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Ring Fit Adventure',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Sine Mora Ex',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Splatoon 2',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Spyro Reignited Trilogy',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Super Bomberman R',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Sushi Striker: The Way of Sushido',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Tales of Vesperia: Definitive Edition',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Team Sonic Racing',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Trinity Trigger',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Yooka-Laylee & The Impossible Lair',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Etrean Odyssey HD',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Etrean Odyssey II HD',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Etrean Odyssey III HD',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Octopath Traveler',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'In Progress'
+    },
+    {
+        title: 'Blasphemous',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Mario Kart 8',
+        system: 'Wii U',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Pokken Tournament',
+        system: 'Wii U',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'The Legend of Zelda: Twilight Princess HD',
+        system: 'Wii U',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Tokyo Mirage Sessions #FE',
+        system: 'Wii U',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Cursed Mountain',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Dirt 2',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Dragonball Z Budokai Tenkaichi 2',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Dragonball Z Budokai Tenkaichi 3',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Fire Emblem: Radiant Dawn',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Link’s Crossbow Training',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Mario & Sonic at the London 2012 Olympic Games',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Mario Kart Wii',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Metroid: Other M',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Need for Speed Carbon',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'No More Heroes',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'No More Heroes 2: Desperate Struggle',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Resident Evil 4 Wii Edition',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Resident Evil: The Darkside Chronicles',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Resident Evil: The Umbrella Chronicles',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Super Smash Bros Brawl',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'The House of the Dead 2 & 3 Return',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'The Legend of Zelda: Skyward Sword',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'The Legend of Zelda: Twilight Princess',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'The Lord of the Rings: Aragorn’s Quest',
+        system: 'Wii',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Wii Sports',
+        system: 'Wii',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Baten Kaitos',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Baten Kaitos Origins',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'F-Zero GX',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Final Fantasy: Crystal Chronicles',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Fire Emblem: Path of Radiance',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Gauntlet: Dark Legacy',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Lego Star Wars 2: The Original Trilogy',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Luigis Mansion',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Mega Man X: Command Mission',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Metroid Prime',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Metroid Prime 2: Echoes',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Paper Mario: The Thousand Year Door',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Pikmin',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Ratatouille',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Resident Evil',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Resident Evil 0',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Shadow the Hedgehog',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Skies of Arcadia Legends',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Sonic Adventure 2 Battle',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'Sonic Adventure DX',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Sonic Adventure DX',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Sonic Heroes',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Soul Calibur 2',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Spyro: Enter the Dragonfly',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Monkey Ball Adventure',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Smash Bros. Melee',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tales of Symphonia',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Ocarina of Time',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: The Wind Waker',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Twilight Princess',
+        system: 'GCN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Lord of the Rings: Return of the King',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tony Hawk’s Pro Skater 3',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Viewtiful Joe',
+        system: 'GCN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Baku Bomberman 2',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Banjo-Kazooie',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Banjo Kazooie 2',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Bomberman Hero',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Choro Q 64',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Custom Robo',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Custom Robo V2',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Diddy Kong’s Racing',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Doraemon 3',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Donkey Kong 64',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Excitebike 64',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Gex 64',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Goemon’s Great Adventure',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Goldeneye 007',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Jet Force Gemini',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Jikkyo Powerful Pro Yakyu 2000',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Jikkyo Powerful Pro Yakyu Basic-ban 2001',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Kirby 64 the Crystal Shards',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mario Golf',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mario Tennis',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mischief Makers',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mortal Kombat Mythologies Sub Zero',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mortal Kombat Trilogy',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Multi-Racing Championship',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'NFL Blitz',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Paper Mario',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Perfect Dark',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Snap',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Stadium',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Stadium: Gold & Silver',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Rampage: World Tour',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Rayman 2: The Great Escape',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Saikyo Habu Shogi',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Shiren the Wanderer 2',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Star Fox 64',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Star Wars Episode 1 Racer',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Star Wars: Rogue Squadron',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario 64',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Smash Bros.',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Majora’s Mask',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Ocarina of Time',
+        system: 'N64',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tony Hawk’s Pro Skater 3',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Top Gear Overdrive',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Turok 2: Seeds of Evil',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'V-Rally Edition ’99',
+        system: 'N64',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Actraiser',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Actraiser 2',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Bahamut Lagoon',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Batman Returns',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Battle Robot Retsuden',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Bubsy',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Chrono Trigger',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Contra 3 The Alien Wars',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Donkey Kong Country',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Donkey Kong Country 2',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Donkey Kong Country 3',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Ball Z Hyper Dimension',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Ball Z Super Butoden',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Ball Z Super Butoden 2',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Ball Z Super Butoden 3',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Quest 1 & 2',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Quest 3',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Quest 5',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Quest 6',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'F-Zero',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fatal Fury Special',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy USA: Mystic Quest',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy 4',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy 5',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy 6',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem: Genealogy of the Holy War',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem: Mystery of the Emblem',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem: Thracia 776',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Front Mission',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Front Mission: Gun Hazard',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ganbare Goemon 2',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ganbare Goemon 3',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Go Go Ackman',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Go Go Ackman 2',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Go Go Ackman 3',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Godzilla: Kaijuu Daikessen',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Gradius 3',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Jurassic Park',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Killer Instinct',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'King Arthur’s World',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Legend of the Mystical Ninja',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Majin Tensei',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mario Paint',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mech Warrior 3050',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mortal Kombat',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mortal Kombat 3',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mother 2',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ogre Battle',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Primal Rage',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Rockman & Bass',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Rockman X',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Rockman X 2',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Rockman X 3',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Sailor Moon S Kurukkurin',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Seiken Densetsu 2',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Shin Megami Tensei',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Shin Megami Tensei 2',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Shin Megami Tensei If',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Spawn',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Starfox',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Bomberman 4',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Castlevania 4',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Double Dragon',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario All-Stars',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario Kart',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario World',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Metroid',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Street Fighter 2 Turbo',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tactics Ogre',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tetris & Dr Mario',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: A Link to the Past',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Top Gear',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Treasure Hunter G',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Uniracers',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Waynes World',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Yoshi’s Island',
+        system: 'SFAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Zenki Battle Raiden',
+        system: 'SFAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem',
+        system: 'FAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem Gaiden',
+        system: 'FAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'NES Open',
+        system: 'FAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario Bros',
+        system: 'FAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario Bros / Duck Hunt',
+        system: 'FAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario Bros 3',
+        system: 'FAM',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Takeshi’s Challenge',
+        system: 'FAM',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'A Plague Tale: Innocence',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Death Stranding ',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy 7 Remake Intergrade',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ghost of Tsushima',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Grand Theft Auto 5',
+        system: 'PS5',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Guardians of the Galaxy',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Jedi Fallen Order',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Judgement',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Kena Bridge of Spirits',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Klonoa Phantasy Reverie Series',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Lost Judgement',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Octopath Traveler 2',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Scarlet Nexus',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Soul Hackers 2',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Spider-Man Remastered',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Spider-Man Miles Morales',
+        system: 'PS5',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tales of Arise',
+        system: 'PS5',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ys VIII: Lacrimosa of Dana',
+        system: 'PS5',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Ball Fusions',
+        system: 'N3DS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy Explorers',
+        system: 'N3DS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem Awakening',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem Echoes: Shadows of Valentia',
+        system: 'N3DS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem Fates',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Metroid: Samus Returns',
+        system: 'N3DS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Monster Hunter Generations',
+        system: 'N3DS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Alpha Sapphire',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Moon',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Y',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Shin Megami Tensei IV',
+        system: 'N3DS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Starfox 64 3D',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: A Link Between Worlds',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Majoras Mask 3D',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Ocarina of Time 3D',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Tri Force Heroes',
+        system: 'N3DS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy 3',
+        system: 'NDS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mega Man Zero Collection',
+        system: 'NDS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mega Man ZX',
+        system: 'NDS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Metroid Prime Hunters',
+        system: 'NDS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ninja Gaiden: Dragon Sword',
+        system: 'NDS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Pearl',
+        system: 'NDS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Resident Evil: Deadly Silence',
+        system: 'NDS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Phantom Hourglass',
+        system: 'NDS',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Double Dragon Advance',
+        system: 'GBA',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Final Fantasy Tactics Advance',
+        system: 'GBA',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem',
+        system: 'GBA',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem: The Binding Blade',
+        system: 'GBA',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Fire Emblem: The Sacred Stones',
+        system: 'GBA',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mario & Luigi Superstar Saga',
+        system: 'GBA',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Mega Man Battle Network',
+        system: 'GBA',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Metroid: Zero Mission',
+        system: 'GBA',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tony Hawks Underground 2',
+        system: 'GBA',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Baseball',
+        system: 'GB',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Metroid 2: Return of Samus',
+        system: 'GB',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Pinball',
+        system: 'GB',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Red',
+        system: 'GB',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Silver',
+        system: 'GB',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Pokemon Yellow',
+        system: 'GB',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Super Mario Land 2: 6 Golden Coins',
+        system: 'GB',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Zelda: Oracle of Seasons',
+        system: 'GB',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: '13 Sentinels Aegis Rim',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Atelier Ryza: Ever Darkness & The Secret Hideout',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Bloodborne',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Code Vein',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Dragon Ball Z: Kakarot',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    },
+    {
+        title: 'God of War',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Gravity Rush 2',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: '.hack//G.U. Last Recode',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Hollow Knight',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Horizon Zero Dawn',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Horizon Forbidden West',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Jump Force',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Last of Us Remastered',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Last of Us Part 2',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Heroes: Trails of Cold Steel',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Legend of Heroes: Trails of Cold Steel II',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Maneater',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Medievil',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ni No Kuni Wrath of the White Witch Remastered',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ni No Kuni 2 The Revenant Kingdom',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Nier Automata',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Nier Replicant ver.122474487139',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Nioh',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Nioh 2',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Okami HD',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Persona 5 Royal',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Persona 5 Strikers',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Ratchet & Clank',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Rayman Legends',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Sakura Wars',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Shenmue I & II',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Shadow of the Colossus',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Sonic Colors Ultimate',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Star Wars Squadrons',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tales of Berseria',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Dark Pictures: Little Hope',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Dark Pictures: Man of Medan',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'The Last Guardian',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Tony Hawk’s Pro Skater 1+2',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Uncharted: The Nathan Drake Collection',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Uncharted 4: A Thief’s End',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Undernauts: Labyrinth of Yomi',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Until Dawn',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Valkyria Chronicles Remastered',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Valkyria Chronicles 4',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Yakuza Like a Dragon',
+        system: 'PS4',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Kingdom Hearts: The Story so Far',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'Kingdom Hearts III',
+        system: 'PS4',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown'
+    }, 
+    {
+        title: 'THEATRHYTHM Final Bar Line',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81TZup-rTeL._AC_SY500_.jpg'
+    }, 
+    {
+        title: 'Super Mario Bros. Wonder',
+        system: 'NSW',
+        beatstatus: 'Beaten',
+        datebeat: '2023-12',
+        cover: 'https://s.pacn.ws/1/p/166/super-mario-bros-wonder-multilanguage-759015.8.jpg?v=rwnv80&width=400&crop=618,1002'
+    }, 
+    {
+        title: 'Yohane the Parhelion: BLAZE in the DEEPBLUE',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://s.pacn.ws/1/p/166/yohane-the-parhelion-blaze-in-the-deepblue-759485.8.jpg?v=rwwo5y&width=400&crop=924,1498'
+    }, 
+    {
+        title: 'Omori',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://www.amazon.ca/gp/product/B0B7KGYGCZ/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&psc=1'
+    }, 
+    {
+        title: 'GrimGrimoire OnceMore',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81iqx8pW5zL._AC_SY500_.jpg'
+    }, 
+    {
+        title: 'We Love Katamari REROLL + Royal Reverie',
+        system: 'NSW',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/71mqc3cpxqL._AC_SY500_.jpg'
+    }, 
+    {
+        title: 'Crisis Core Final Fantasy VII Reunion',
+        system: 'PS5',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81jts5VpOhL.__AC_SX300_SY300_QL70_ML2_.jpg'
+    }, 
+    {
+        title: 'Final Fantasy XVI',
+        system: 'PS5',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: 'https://m.media-amazon.com/images/I/81wY2AaOF2L.__AC_SX300_SY300_QL70_ML2_.jpg'
+    }, 
+    {
+        title: 'Sonic Frontiers',
+        system: 'PS5',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    // {
+    //     title: 'Eternights',
+    //     system: 'PS5',
+    //     beatstatus: 'Not Beaten',
+    //     datebeat: 'Unknown',
+    //     cover: ''
+    // }, 
+    // {
+    //     title: 'Super Robot Wars V',
+    //     system: 'NSW',
+    //     beatstatus: 'Not Beaten',
+    //     datebeat: 'Unknown',
+    //     cover: 'https://s.pacn.ws/1/p/xx/super-robot-wars-v-multilanguage-chinese-cover-610503.12.jpg?v=rhxmj3&width=400&crop=926,1500'
+    // }, 
+    // {
+    //     title: 'The Legend of Heroes: Trails from Zero',
+    //     system: 'NSW',
+    //     beatstatus: 'Not Beaten',
+    //     datebeat: 'Unknown',
+    //     cover: 'https://m.media-amazon.com/images/I/815OKtKUzRL.__AC_SX300_SY300_QL70_ML2_.jpgjpg'
+    // }, 
+    // {
+    //     title: 'Baten Kaitos I & II HD Remaster',
+    //     system: 'NSW',
+    //     beatstatus: 'Not Beaten',
+    //     datebeat: 'Unknown',
+    //     cover: 'https://s.pacn.ws/1/p/15h/baten-kaitos-i-ii-hd-remaster-746549.1.jpg?v=rptohj&width=400&crop=924,1498'
+    // }, 
+    // {
+    //     title: 'World of Horror',
+    //     system: 'NSW',
+    //     beatstatus: 'Not Beaten',
+    //     datebeat: 'Unknown',
+    //     cover: 'https://s.pacn.ws/1/p/16d/world-of-horror-multilanguage-762951.9.jpg?v=ryduz5&width=400&crop=722,1166'
+    // }, 
+    // {
+    //     title: 'Sea of Stars',
+    //     system: 'NSW',
+    //     beatstatus: 'Not Beaten',
+    //     datebeat: 'Unknown',
+    //     cover: 'https://s.pacn.ws/1/p/16p/sea-of-stars-768617.1.jpg?v=s08g9n&width=400&crop=798,1294'
+    // }, 
+    {
+        title: 'Darkstone',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Final Fantasy 7',
+        system: 'PS1',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Final Fantasy 8',
+        system: 'PS1',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Final Fantasy Anthology',
+        system: 'PS1',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Final Fantasy Chronicles',
+        system: 'PS1',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Final Fantasy Tactics',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Mega Man X 4',
+        system: 'PS1',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Mega Man X 5',
+        system: 'PS1',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Mega Man X 6',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'NHL 99',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Resident Evil 2',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Spyro 2: Ryptos Rage!',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'The Legend of Dragoon',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Tony Hawks Pro Skater 2',
+        system: 'PS1',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Dance Dance Revolution Extreme 2',
+        system: 'PS2',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Final Fantasy X',
+        system: 'PS2',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Marvel Nemesis: Rise of the Imperfects',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Max Payne',
+        system: 'PS2',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Mega Man X 7',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Mega Man X 8',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Metal Gear Solid 2: Sons of Liberty',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Naurto Ultimate Ninja 2',
+        system: 'PS2',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Resident Evil Code: Veronica X',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Resident Evil 4',
+        system: 'PS2',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Resident Evil Outbreak',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shadow of the Colossus',
+        system: 'PS2',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Resident Evil Outbreak',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shin Megami Tensei: Digital Devil Saga',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shin Megami Tensei: Digital Devil Saga 2',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shin Megami Tensei: Nocturne',
+        system: 'PS2',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shin Megami Tensei: Digital Devil Saga',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shin Megami Tensei: Persona 3 FES',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shin Megami Tensei: Persona 4',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic Riders',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Soul Calibur 3',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Star Ocean: Till the End of Time',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Suikoden 3',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Suikoden Tactics',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Tony Hawks Underground 2',
+        system: 'PS2',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Crisis Core: Final Fantasy 7',
+        system: 'PSP',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'The Legend of Heroes 3: Song of the Ocean',
+        system: 'PSP',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Lumines: Puzzle Fusion',
+        system: 'PSP',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Mega Man Maverick Hunter X',
+        system: 'PSP',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Naruto: Ultimate Ninja Heroes',
+        system: 'PSP',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Need for Speed: Pro Street',
+        system: 'PSP',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Tales of the World: Radiant Mythology',
+        system: 'PSP',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Double Dragon',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Golden Axe',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Hang On/Safari Hut',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Parlour Games',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Reggie Jackson Baseball',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shinobi',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Thunder Blade',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Where in the World is Carmen Sandiego?',
+        system: 'SMS',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shinobi 3: Return of the Ninja Master',
+        system: 'GEN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic & Knuckles',
+        system: 'GEN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic Spinball',
+        system: 'GEN',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic the Hedgehog',
+        system: 'GEN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic the Hedgehog 2',
+        system: 'GEN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic the Hedgehog 3',
+        system: 'GEN',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'After Burner 2',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Dark Seed',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Daytona USA',
+        system: 'SAT',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Dead or Alive',
+        system: 'SAT',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Dragon Force',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Magic Knight Rayearth',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Neon Genesis Evangelion: 1st Impression',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Neon Genesis Evangelion: 2nd Impression',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Nights into Dreams',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Panzer Dragoon',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic R',
+        system: 'SAT',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'The King of Fighters `96',
+        system: 'SAT',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'The Super Dimension Fortress Macross',
+        system: 'SAT',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Vampire Hunter',
+        system: 'SAT',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Vampire Savior',
+        system: 'SAT',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'X-Men Vs Street Fighter',
+        system: 'SAT',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Alien Front Online',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Bust-A-Move 4',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Crazy Taxi',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Ecco the Dolphin',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Jet Grind Radio',
+        system: 'SGC',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Ooga Booga',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Phantasy Star Online v2',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Quake 3 Arena',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Shenmue',
+        system: 'SGC',
+        beatstatus: 'Not Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Sonic Adventure',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Toy Commander',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    {
+        title: 'Unreal Tournament',
+        system: 'SGC',
+        beatstatus: 'Beaten',
+        datebeat: 'Unknown',
+        cover: ''
+    }, 
+    // Digital
+      // Steam
+      // Battle.net
+      // Wii
+      // Wii U
+      // NSW
+      // PS4/5
+      // Other ???
+];
+
+// Sort games by beat status and date
+games.sort((a, b) => {
+    if (a.beatstatus !== b.beatstatus) {
+        return a.beatstatus.localeCompare(b.beatstatus);
+    } else {
+        const dateA = a.datebeat === 'Unknown' ? null : new Date(a.datebeat);
+        const dateB = b.datebeat === 'Unknown' ? null : new Date(b.datebeat);
+        if (!dateA || !dateB) {
+            if (!dateA && !dateB) {
+                return 0; 
+            } else if (!dateA) {
+                return 1; 
+            } else {
+                return -1; 
+            }
+        }
+        return dateB - dateA;
+    }
+});
+
+const currentlyPlayingTable = document.getElementById('currently-playing');
+const beatenGamesTable = document.getElementById('beaten-games');
+const additionalGamesTable = document.getElementById('additional-games');
+const beatenGamesTbody = beatenGamesTable.getElementsByTagName('tbody')[0];
+const rowsPerPage = 1;
+let currentPage = 1;
+
+
+games.forEach(game => {
+    if (game.beatstatus === 'Currently Playing') {
+        currentlyPlayingTable.getElementsByTagName('tbody')[0].innerHTML += `
+            <tr>
+                <td><img src="${game.cover}" class="cover-dimensions" alt="[Missing Cover]"></td>
+                <td>${game.title} [${game.system}]</td>
+            </tr>
+        `;
+    } else if (game.beatstatus === 'Beaten') {
+        beatenGamesTable.getElementsByTagName('tbody')[0].innerHTML += `
+            <tr>
+                <td><img src="${game.cover}" class="cover-dimensions" alt="[Missing Cover]"></td>
+                <td>${game.title} [${game.system}]</td>
+                <td>${game.datebeat}</td>
+            </tr>
+        `;
+    } else {
+        additionalGamesTable.getElementsByTagName('tbody')[0].innerHTML += `
+            <tr>
+                <td><img src="${game.cover}" class="cover-dimensions" alt="[Missing Cover]"></td>
+                <td>${game.title} [${game.system}]</td>
+            </tr>
+        `;
+    }
+});
+
+function displayData() {
+    const rows = beatenGamesTbody.getElementsByTagName('tr');
+    const pageCount = Math.ceil(rows.length / rowsPerPage);
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    for (let i = 0; i < rows.length; i++) {
+        if (i >= start && i < end) {
+            rows[i].style.display = 'table-row';
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+
+    document.getElementById('page').textContent = `Page ${currentPage} of ${pageCount}`;
+}
+
+displayData();
+
+document.getElementById('prev').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        displayData();
+    }
+});
+
+document.getElementById('next').addEventListener('click', () => {
+    const pageCount = Math.ceil(beatenGamesTbody.getElementsByTagName('tr').length / rowsPerPage);
+    if (currentPage < pageCount) {
+        currentPage++;
+        displayData();
+    }
+});
+
+// Backlog generator
+function suggestGame() {
+  const table = document.getElementById("additional-games");
+  const numRows = table.rows.length; 
+
+  if (numRows === 0) {
+    return; // No rows to suggest
+  }
+
+  // Randomly select a column index
+  const randomRowIndex = Math.floor(Math.random() * numRows);
+
+  // Create a new table to display the selected column
+  const selectedRow = table.rows[randomRowIndex].cloneNode(true);
+
+  // Display the selected column in the result div
+  const resultDiv = document.getElementById("backlogResult");
+  resultDiv.innerHTML = "";
+  resultDiv.appendChild(selectedRow);
+}
+
+// Event listener for the "Suggest a Column" button
+const suggestButton = document.getElementById("backlogButon");
+suggestButton.addEventListener("click", suggestGame);
+
+
+
+
+// Collect totals and display percentage bars
+const systemCounts = {};
+
+games.forEach(game => {
+    if (game.beatstatus === 'Beaten') {
+        if (systemCounts[game.system]) {
+            systemCounts[game.system].beaten++;
+            systemCounts[game.system].total++;
+        } else {
+            systemCounts[game.system] = { beaten: 1, unbeaten: 0, total: 1 };
+        }
+    } else {
+        if (systemCounts[game.system]) {
+            systemCounts[game.system].unbeaten++;
+            systemCounts[game.system].total++;
+        } else {
+            systemCounts[game.system] = { beaten: 0, unbeaten: 1, total: 1 };
+        }
+    }
+});
+
+const summaryElement = document.createElement('div');
+summaryElement.innerHTML = '<h2>Game Summary</h2>';
+
+for (const system in systemCounts) {
+    const counts = systemCounts[system];
+    const percentage = (counts.beaten / counts.total) * 100;
+    summaryElement.innerHTML += `
+        <p><b>${system}</b>: Beaten - ${counts.beaten} | Unbeaten - ${counts.unbeaten} | Total - ${counts.total}</p>
+        <div id="percentage-bar-${system}" class="percentage-bar">
+            <div class="percentage-fill" style="width: ${percentage}%;"></div>
+            <div class="percentage-text">${percentage.toFixed(2)}%</div>
+        </div>`;
+}
+
+const gameSummaryDiv = document.getElementById('game-summary');
+gameSummaryDiv.appendChild(summaryElement);
+
+  </script>
+</body>
+</html>
